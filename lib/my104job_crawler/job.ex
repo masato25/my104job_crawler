@@ -1,6 +1,7 @@
 defmodule My104jobCrawler.Job do
   use Ecto.Model
   import Ecto.Changeset
+  import Ecto.Queryable
   
   schema "jobs" do
     field :company_name, :string
@@ -15,7 +16,7 @@ defmodule My104jobCrawler.Job do
     field :job_cat, :string
 
     timestamps
-  end 
+  end
 
   @required_fields ~w(company_name job_name area create_at sal_low sal_high welfare j c job_cat)
   @optional_fields ~w()

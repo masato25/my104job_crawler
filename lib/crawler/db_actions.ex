@@ -1,16 +1,34 @@
 defmodule Crawler.DBAction do
   alias My104jobCrawler.Job
   alias My104jobCrawler.Repo
+  import Ecto.Query, only: [from: 2]
+  import Ecto.Queryable
   import Logger
 
   def create(obj) do
     records = getvalue(obj)
-    job = Job.changeset(Job.__struct__,records)
-    if job.valid? do
-      Repo.insert(job)
-    else
-      Logger.debug("records insert no valid!")
-    end 
+    i = Job.changeset(Job.__struct__,records)
+    case i.valid? do
+      true ->
+        case Repo.insert(i) do
+          {:ok, job} -> Logger.info("ok")
+          {:error, changeset} ->
+            case changeset.errors do
+              [c: "has already been taken"] ->
+                Logger.debug("has already been taken")
+                getid = Repo.all from j in Job,
+                                 where: j.c == ^records.c,
+                                 select: j.id
+                tjob = Repo.get!(Job, hd(getid))
+                changeset = Job.changeset(tjob,records)
+                Repo.update(changeset)
+              err ->
+                 IO.inspect(err)
+            end
+        end
+      false ->
+        Logger.debug("records insert no valid!")
+    end
   end
 
   def getdate(create_at) do
